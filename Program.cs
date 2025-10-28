@@ -6,7 +6,14 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddHttpClient<IEmployeeService, EmployeeService>();
+builder.Services.AddHttpClient<IEmployeeService, EmployeeService>(client =>
+{
+    var baseUrl = builder.Configuration["ExternalApis:RandomUserApi:BaseUrl"];
+    if (!string.IsNullOrEmpty(baseUrl))
+    {
+        client.BaseAddress = new Uri(baseUrl);
+    }
+});
 builder.Services.AddSingleton<INoteService, NoteService>();
 
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();

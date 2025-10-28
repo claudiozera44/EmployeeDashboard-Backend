@@ -1,5 +1,6 @@
 using EmployeeDashboard.Api.Models;
 using System.Text.Json;
+using Microsoft.Extensions.Configuration;
 
 namespace EmployeeDashboard.Api.Services;
 
@@ -7,18 +8,23 @@ public class EmployeeService : IEmployeeService
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<EmployeeService> _logger;
+    private readonly IConfiguration _configuration;
 
-    public EmployeeService(HttpClient httpClient, ILogger<EmployeeService> logger)
+    public EmployeeService(HttpClient httpClient, ILogger<EmployeeService> logger, IConfiguration configuration)
     {
         _httpClient = httpClient;
         _logger = logger;
+        _configuration = configuration;
     }
 
     public async Task<List<Employee>> GetEmployeesAsync()
     {
         try
         {
-            var response = await _httpClient.GetAsync("https://randomuser.me/api/?results=50");
+
+            var resultsCount = _configuration.GetValue<int>("ExternalApis:RandomUserApi:ResultsCount", 50);
+            var seed = _configuration.GetValue<string>("ExternalApis:RandomUserApi:Seed", string.Empty);
+            var response = await _httpClient.GetAsync($"?results={resultsCount}&seed={seed}");
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
